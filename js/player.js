@@ -40,7 +40,8 @@ class Player {
         // Animation properties
         this.frameIndex = 0;
         this.tickCount = 0;
-        this.ticksPerFrame = PLAYER.TICKS_PER_FRAME;
+        this.baseTicks = PLAYER.BASE_TICKS_PER_FRAME;
+        this.ticksPerFrame = this.baseTicks;
         this.totalFrames = {
             'idle': PLAYER.FRAMES.IDLE,
             'running': PLAYER.FRAMES.RUNNING,
@@ -150,7 +151,25 @@ class Player {
         }
     }
     
-    update() {
+    // Update animation speed based on game speed
+    updateAnimationSpeed(gameSpeed) {
+        // Only adjust animation speed when running (not when jumping or transitioning)
+        if (this.state === 'running' && !this.isJumping) {
+            // Reduce ticks per frame as game speed increases (faster animation)
+            this.ticksPerFrame = Math.max(
+                PLAYER.MIN_TICKS_PER_FRAME,
+                Math.floor(this.baseTicks / (gameSpeed * PLAYER.ANIMATION_SPEED_FACTOR))
+            );
+        } else {
+            // Reset to default speed for other animations
+            this.ticksPerFrame = this.baseTicks;
+        }
+    }
+    
+    update(gameSpeed = 1) {
+        // Update animation speed based on game speed
+        this.updateAnimationSpeed(gameSpeed);
+        
         // If jump button is held, continue increasing jump height
         if (this.isJumpButtonHeld) {
             this.continueJump();
@@ -224,14 +243,14 @@ class Player {
         }
         
         // Debugging: draw visual sprite boundary
-        // ctx.strokeStyle = 'yellow';
-        // ctx.lineWidth = 1;
-        // ctx.strokeRect(this.x, this.y, this.width, this.height);
+        ctx.strokeStyle = 'yellow';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(this.x, this.y, this.width, this.height);
         
         // Debugging: draw hitbox
-        // ctx.strokeStyle = 'red';
-        // ctx.lineWidth = 2;
-        // const hitbox = this.getHitbox();
-        // ctx.strokeRect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
+        ctx.strokeStyle = 'red';
+        ctx.lineWidth = 2;
+        const hitbox = this.getHitbox();
+        ctx.strokeRect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
     }
 }

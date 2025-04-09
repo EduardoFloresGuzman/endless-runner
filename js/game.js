@@ -20,6 +20,11 @@ class Game {
         this.player = new Player(this.canvas.width, this.canvas.height);
         this.player.setState('idle'); // Start player in idle state
         this.obstacleManager = new ObstacleManager(this.canvas.width, this.canvas.height);
+        this.background = new Background(this.canvas.width, this.canvas.height);
+        this.ground = new Ground(this.canvas.width, this.canvas.height);
+        
+        // Menu elements
+        this.menuOverlay = document.getElementById('menu-overlay');
         
         // Event listeners
         this.setupEventListeners();
@@ -53,9 +58,18 @@ class Game {
             this.running = true;
             this.score = 0;
             this.gameSpeed = GAME.STARTING_SPEED;
+            
+            // Hide menu overlay with a fade effect
+            this.menuOverlay.style.opacity = '0';
+            setTimeout(() => {
+                this.menuOverlay.style.display = 'none';
+            }, 500); // Match this with CSS transition duration
+            
             this.player = new Player(this.canvas.width, this.canvas.height);
             this.player.setState('idle'); // Start player in idle state
             this.obstacleManager = new ObstacleManager(this.canvas.width, this.canvas.height);
+            this.background = new Background(this.canvas.width, this.canvas.height);
+            this.ground = new Ground(this.canvas.width, this.canvas.height);
             document.getElementById('start-button').textContent = "Restart";
             
             // Start the game loop
@@ -67,12 +81,17 @@ class Game {
             this.player = new Player(this.canvas.width, this.canvas.height);
             this.player.setState('idle'); // Start player in idle state
             this.obstacleManager.reset();
+            this.background = new Background(this.canvas.width, this.canvas.height);
+            this.ground = new Ground(this.canvas.width, this.canvas.height);
         }
     }
     
     update(deltaTime) {
-        // Update player
-        this.player.update();
+        // Update background
+        this.background.update(this.gameSpeed);
+        
+        // Update player - now passing gameSpeed to player
+        this.player.update(this.gameSpeed);
         
         // Update obstacles
         this.obstacleManager.update(deltaTime, this.gameSpeed);
@@ -98,9 +117,11 @@ class Game {
         // Clear the canvas
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
+        // Draw background
+        this.background.draw(this.ctx);
+        
         // Draw ground
-        this.ctx.fillStyle = '#2ecc71';
-        this.ctx.fillRect(0, this.canvas.height - GAME.GROUND_HEIGHT, this.canvas.width, GAME.GROUND_HEIGHT);
+        this.ground.draw(this.ctx);
         
         // Draw player
         this.player.draw(this.ctx);
@@ -120,6 +141,10 @@ class Game {
             
             this.ctx.font = '24px Arial';
             this.ctx.fillText(`Score: ${Math.floor(this.score / GAME.SCORE_DIVIDER)}`, this.canvas.width / 2, this.canvas.height / 2 + 40);
+            
+            // Show restart button
+            this.menuOverlay.style.display = 'flex';
+            this.menuOverlay.style.opacity = '1';
         }
     }
     

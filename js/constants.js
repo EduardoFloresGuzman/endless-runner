@@ -43,7 +43,9 @@ const PLAYER = {
     GRAVITY_REDUCTION: 0.9,     // For smoother jumps
     
     // Animation
-    TICKS_PER_FRAME: 5,
+    BASE_TICKS_PER_FRAME: 5,    // Base animation speed (higher = slower)
+    MIN_TICKS_PER_FRAME: 2,     // Minimum animation speed (don't go too fast)
+    ANIMATION_SPEED_FACTOR: 1.2, // How much game speed affects animation
     FRAMES: {
         IDLE: 1,
         RUNNING: 16,
@@ -60,4 +62,14 @@ const OBSTACLE = {
     MAX_HEIGHT: 80,
     BASE_SPEED: -5,
     SPAWN_INTERVAL: 1500
+};
+
+// Background constants
+const BACKGROUND = {
+    FAR_SPEED: 0.5,    // Slowest layer (farthest)
+    MID_SPEED: 1.5,    // Middle layer
+    NEAR_SPEED: 3.0,   // Fastest layer (closest)
+    OVERLAP: 5,        // Default overlap for most layers
+    MID_OVERLAP: 1,   // Increased overlap for middle layer
+    NEAR_OVERLAP: 1   // Even larger overlap for near layer to prevent stuttering
 };
