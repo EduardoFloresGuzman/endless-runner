@@ -23,89 +23,98 @@ class Game {
         this.background = new Background(this.canvas.width, this.canvas.height);
         this.ground = new Ground(this.canvas.width, this.canvas.height);
         
-        // Menu elements
-        this.menuOverlay = document.getElementById('menu-overlay');
+        // Menu system - replaces HTML menu
+        this.menuManager = new MenuManager(this.canvas.width, this.canvas.height);
         
         // Event listeners
         this.setupEventListeners();
         
-        // Start button
-        document.getElementById('start-button').addEventListener('click', () => {
-            this.start();
-        });
+        // Start the game loop immediately (not waiting for game to start)
+        this.animationFrameId = requestAnimationFrame(this.gameLoop.bind(this));
+        
+        console.log("Game initialized - Menu should be visible");
     }
     
     setupEventListeners() {
-        // Mouse controls only for variable height jumping
-        this.canvas.addEventListener('mousedown', () => {
-            if (this.running) {
+        // Mouse controls for jumping
+        this.canvas.addEventListener('mousedown', (e) => {
+            const rect = this.canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            if (!this.running) {
+                // Handle menu click
+                if (this.menuManager.handleClick(x, y)) {
+                    this.start();
+                }
+            } else {
+                // Handle jump
                 this.player.startJump();
             }
         });
         
         this.canvas.addEventListener('mouseup', () => {
-            this.player.endJump();
+            if (this.running) {
+                this.player.endJump();
+            }
         });
         
         // Handle case where mouse leaves canvas while held
         this.canvas.addEventListener('mouseleave', () => {
-            this.player.endJump();
+            if (this.running) {
+                this.player.endJump();
+            }
         });
     }
     
     start() {
-        if (!this.running) {
-            this.running = true;
-            this.score = 0;
-            this.gameSpeed = GAME.STARTING_SPEED;
-            
-            // Hide menu overlay with a fade effect
-            this.menuOverlay.style.opacity = '0';
-            setTimeout(() => {
-                this.menuOverlay.style.display = 'none';
-            }, 500); // Match this with CSS transition duration
-            
-            this.player = new Player(this.canvas.width, this.canvas.height);
-            this.player.setState('idle'); // Start player in idle state
-            this.obstacleManager = new ObstacleManager(this.canvas.width, this.canvas.height);
-            this.background = new Background(this.canvas.width, this.canvas.height);
-            this.ground = new Ground(this.canvas.width, this.canvas.height);
-            document.getElementById('start-button').textContent = "Restart";
-            
-            // Start the game loop
-            requestAnimationFrame(this.gameLoop.bind(this));
-        } else {
-            // Restart the game
-            this.score = 0;
-            this.gameSpeed = GAME.STARTING_SPEED;
-            this.player = new Player(this.canvas.width, this.canvas.height);
-            this.player.setState('idle'); // Start player in idle state
-            this.obstacleManager.reset();
-            this.background = new Background(this.canvas.width, this.canvas.height);
-            this.ground = new Ground(this.canvas.width, this.canvas.height);
-        }
+        this.running = true;
+        this.score = 0;
+        this.gameSpeed = GAME.STARTING_SPEED;
+        
+        // Hide menu
+        this.menuManager.hide();
+        
+        // Reset game objects
+        this.player = new Player(this.canvas.width, this.canvas.height);
+        this.player.setState('idle');
+        this.obstacleManager = new ObstacleManager(this.canvas.width, this.canvas.height);
+        this.background = new Background(this.canvas.width, this.canvas.height);
+        this.ground = new Ground(this.canvas.width, this.canvas.height);
+        
+        // We're already running the game loop, so no need to start it again
+        console.log("Game started - Menu should be hidden now");
+    }
+    
+    gameOver() {
+        this.running = false;
+        
+        // Update and show game over menu
+        this.menuManager.setScore(Math.floor(this.score / GAME.SCORE_DIVIDER));
+        this.menuManager.show('gameover');
     }
     
     update(deltaTime) {
-        // Update background
-        this.background.update(this.gameSpeed);
-        
-        // Update player - now passing gameSpeed to player
-        this.player.update(this.gameSpeed);
-        
-        // Update obstacles
-        this.obstacleManager.update(deltaTime, this.gameSpeed);
-        
-        // Check collisions
-        if (this.obstacleManager.checkCollision(this.player)) {
-            this.running = false;
-            document.getElementById('start-button').textContent = "Try Again";
-        }
-        
-        // Update score and game speed
+        // Only update game objects when the game is running
         if (this.running) {
+            // Update background
+            this.background.update(this.gameSpeed);
+            
+            // Update player
+            this.player.update(this.gameSpeed);
+            
+            // Update obstacles
+            this.obstacleManager.update(deltaTime, this.gameSpeed);
+            
+            // Check collisions
+            if (this.obstacleManager.checkCollision(this.player)) {
+                this.gameOver();
+            }
+            
+            // Update score and game speed
             this.score += 1;
-            document.getElementById('score').textContent = `Score: ${Math.floor(this.score / GAME.SCORE_DIVIDER)}`;
+            // Update the canvas-rendered score instead of HTML element
+            this.menuManager.updateScore(Math.floor(this.score / GAME.SCORE_DIVIDER));
             
             // Increase game speed over time
             this.gameSpeed = GAME.STARTING_SPEED + 
@@ -129,23 +138,8 @@ class Game {
         // Draw obstacles
         this.obstacleManager.draw(this.ctx);
         
-        // Draw game over message
-        if (!this.running && this.score > 0) {
-            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-            
-            this.ctx.font = '48px Arial';
-            this.ctx.fillStyle = 'white';
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText('Game Over', this.canvas.width / 2, this.canvas.height / 2);
-            
-            this.ctx.font = '24px Arial';
-            this.ctx.fillText(`Score: ${Math.floor(this.score / GAME.SCORE_DIVIDER)}`, this.canvas.width / 2, this.canvas.height / 2 + 40);
-            
-            // Show restart button
-            this.menuOverlay.style.display = 'flex';
-            this.menuOverlay.style.opacity = '1';
-        }
+        // Draw menu if visible
+        this.menuManager.draw(this.ctx);
     }
     
     gameLoop(timestamp) {
@@ -157,10 +151,8 @@ class Game {
         this.update(deltaTime);
         this.draw();
         
-        // Continue the game loop if the game is running
-        if (this.running) {
-            requestAnimationFrame(this.gameLoop.bind(this));
-        }
+        // Continue the game loop
+        this.animationFrameId = requestAnimationFrame(this.gameLoop.bind(this));
     }
 }
 
