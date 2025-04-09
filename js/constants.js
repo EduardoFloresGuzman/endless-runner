@@ -73,3 +73,15 @@ const BACKGROUND = {
     MID_OVERLAP: 1,   // Increased overlap for middle layer
     NEAR_OVERLAP: 1   // Even larger overlap for near layer to prevent stuttering
 };
+
+// Menu constants
+const MENU = {
+    BUTTON: {
+        WIDTH: 400,
+        HEIGHT: 150
+    },
+    GAMEOVER_BUTTON: {
+        WIDTH: 200,
+        HEIGHT: 80
+    }
+};

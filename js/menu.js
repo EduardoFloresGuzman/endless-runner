@@ -13,21 +13,36 @@ class MenuManager {
         this.playerImage = new Image();
         this.playerImage.src = 'assets/menu/player.png';
         
-        // Add event listener to verify image loading
+        // Add start button image
+        this.buttonImage = new Image();
+        this.buttonImage.src = 'assets/menu/start-button.png';
+        
+        // Add event listeners to verify image loading
         this.playerImage.onload = () => {
             console.log("Menu player image loaded successfully");
+        };
+        
+        this.buttonImage.onload = () => {
+            console.log("Start button image loaded successfully");
+            // Use the dimensions from constants
+            this.startButton.width = MENU.BUTTON.WIDTH;
+            this.startButton.height = MENU.BUTTON.HEIGHT;
         };
         
         this.playerImage.onerror = (e) => {
             console.error("Error loading menu player image:", e);
         };
         
+        this.buttonImage.onerror = (e) => {
+            console.error("Error loading button image:", e);
+        };
+        
         // Button areas for click detection
         this.startButton = {
-            x: width * 0.25,
-            y: height * 0.6,
-            width: 200,
-            height: 60,
+            x: width * 0.2, // Aligned with the title text
+            y: height * 0.4, // Positioned below the title (title is at 0.3)
+            width: 200,  // Default size, will be overridden when image loads
+            height: 60,  // Default size, will be overridden when image loads
             text: 'Start Game'
         };
         
@@ -163,8 +178,10 @@ class MenuManager {
         ctx.font = '32px Arial';
         ctx.fillText(`Score: ${Math.floor(this.finalScore)}`, this.width * 0.5, this.height * 0.4);
         
-        // Update button text
+        // Update button text and use smaller dimensions for game over button
         this.startButton.text = 'Try Again';
+        this.startButton.width = MENU.GAMEOVER_BUTTON.WIDTH;
+        this.startButton.height = MENU.GAMEOVER_BUTTON.HEIGHT;
         this.startButton.x = this.width * 0.5 - this.startButton.width / 2; // Center horizontally
         
         // Draw button
@@ -172,20 +189,33 @@ class MenuManager {
     }
     
     drawButton(ctx, button) {
-        // Button background
-        ctx.fillStyle = '#4CAF50';
-        ctx.fillRect(button.x, button.y, button.width, button.height);
-        
-        // Button border
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(button.x, button.y, button.width, button.height);
-        
-        // Button text
-        ctx.font = 'bold 24px Arial';
-        ctx.fillStyle = 'white';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(button.text, button.x + button.width / 2, button.y + button.height / 2);
+        // Use the image only for the main menu screen, not game over
+        if (this.buttonImage && this.buttonImage.complete && this.menuState !== 'gameover') {
+            // Draw the button using the image
+            ctx.drawImage(
+                this.buttonImage,
+                button.x,
+                button.y,
+                button.width,
+                button.height
+            );
+        } else {
+            // Styled button for game over screen or fallback
+            // Button background
+            ctx.fillStyle = '#4CAF50';
+            ctx.fillRect(button.x, button.y, button.width, button.height);
+            
+            // Button border
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(button.x, button.y, button.width, button.height);
+            
+            // Button text
+            ctx.font = 'bold 24px Arial';
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(button.text, button.x + button.width / 2, button.y + button.height / 2);
+        }
     }
 }
