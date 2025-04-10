@@ -1,18 +1,19 @@
 /**
- * Obstacle management for the endless runner game
+ * Obstacle entity for the endless runner game
  */
-class Obstacle {
+class Obstacle extends Entity {
     constructor(gameWidth, gameHeight, gameSpeed = 1) {
-        this.gameWidth = gameWidth;
-        this.gameHeight = gameHeight;
+        // Generate random dimensions
+        const width = randomInt(OBSTACLE.MIN_WIDTH, OBSTACLE.MAX_WIDTH);
+        const height = randomInt(OBSTACLE.MIN_HEIGHT, OBSTACLE.MAX_HEIGHT);
         
-        // Obstacle dimensions
-        this.width = randomInt(OBSTACLE.MIN_WIDTH, OBSTACLE.MAX_WIDTH);
-        this.height = randomInt(OBSTACLE.MIN_HEIGHT, OBSTACLE.MAX_HEIGHT);
-        
-        // Obstacle position
-        this.x = this.gameWidth;
-        this.y = this.gameHeight - this.height - GAME.GROUND_HEIGHT; // On ground
+        // Initialize with position at the right edge of the screen
+        super(
+            gameWidth,
+            gameHeight - height - GAME.GROUND_HEIGHT,
+            width,
+            height
+        );
         
         // Obstacle speed
         this.baseSpeedX = OBSTACLE.BASE_SPEED;
@@ -32,6 +33,9 @@ class Obstacle {
     }
 }
 
+/**
+ * Manages the creation and update of obstacles
+ */
 class ObstacleManager {
     constructor(gameWidth, gameHeight) {
         this.gameWidth = gameWidth;

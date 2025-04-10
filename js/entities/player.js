@@ -1,14 +1,18 @@
 /**
- * Player class for the endless runner game
+ * Player entity for the endless runner game
  */
-class Player {
+class Player extends Entity {
     constructor(gameWidth, gameHeight) {
+        // Initialize with default position and dimensions
+        super(
+            PLAYER.STARTING_X,
+            gameHeight - PLAYER.HEIGHT - PLAYER.GROUND_OFFSET,
+            PLAYER.WIDTH,
+            PLAYER.HEIGHT
+        );
+        
         this.gameWidth = gameWidth;
         this.gameHeight = gameHeight;
-        
-        // Player dimensions
-        this.width = PLAYER.WIDTH;
-        this.height = PLAYER.HEIGHT;
         
         // Collision hitbox dimensions (smaller than visual size)
         this.hitboxWidth = this.width * PLAYER.HITBOX_WIDTH_RATIO;
@@ -17,10 +21,6 @@ class Player {
         // Hitbox offset from player position
         this.hitboxOffsetX = (this.width - this.hitboxWidth) / PLAYER.HITBOX_X_OFFSET_DIVISOR;
         this.hitboxOffsetY = (this.height - this.hitboxHeight) / PLAYER.HITBOX_Y_OFFSET_DIVISOR;
-        
-        // Player position
-        this.x = PLAYER.STARTING_X;
-        this.y = this.gameHeight - this.height - PLAYER.GROUND_OFFSET;
         
         // Player physics
         this.speed = 0;
@@ -48,11 +48,17 @@ class Player {
             'jumping': PLAYER.FRAMES.JUMPING,
             'idle-to-running': PLAYER.FRAMES.IDLE_TO_RUNNING
         };
-        
-        // We now use the asset manager
     }
     
-    // Removed loadSprites() method comment since it's better to not reference removed code
+    // Override the base getHitbox method for more precise collision detection
+    getHitbox() {
+        return {
+            x: this.x + this.hitboxOffsetX,
+            y: this.y + this.hitboxOffsetY,
+            width: this.hitboxWidth,
+            height: this.hitboxHeight
+        };
+    }
     
     startJump() {
         if (!this.isJumping) {
@@ -88,13 +94,8 @@ class Player {
     }
     
     endJump() {
-        // Called when jump button is released
         this.isJumpButtonHeld = false;
         this.canChargeJump = false;
-    }
-    
-    jump() {
-        this.startJump();
     }
     
     setState(state) {
@@ -128,7 +129,6 @@ class Player {
                     }
                 }
             }
-            // For single-frame animations (idle and jumping), no need to advance frames
         }
     }
     
@@ -194,16 +194,6 @@ class Player {
         this.updateAnimation();
     }
     
-    // Get collision hitbox coordinates for collision detection
-    getHitbox() {
-        return {
-            x: this.x + this.hitboxOffsetX,
-            y: this.y + this.hitboxOffsetY,
-            width: this.hitboxWidth,
-            height: this.hitboxHeight
-        };
-    }
-    
     draw(ctx) {
         // Get the appropriate asset key for the current frame
         const assetKey = `player_${this.state}_${this.frameIndex}`;
@@ -222,16 +212,5 @@ class Player {
             ctx.fillStyle = '#3498db';
             ctx.fillRect(this.x, this.y, this.width, this.height);
         }
-        
-        // // Debugging: draw visual sprite boundary
-        // ctx.strokeStyle = 'yellow';
-        // ctx.lineWidth = 1;
-        // ctx.strokeRect(this.x, this.y, this.width, this.height);
-        
-        // // Debugging: draw hitbox
-        // ctx.strokeStyle = 'red';
-        // ctx.lineWidth = 2;
-        // const hitbox = this.getHitbox();
-        // ctx.strokeRect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
     }
 }
