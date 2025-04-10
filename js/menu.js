@@ -9,79 +9,17 @@ class MenuManager {
         this.menuState = 'main'; // 'main', 'paused', 'gameover'
         this.visible = true;
         
-        // Pre-load images
-        this.playerImage = new Image();
-        this.playerImage.src = 'assets/menu/player.png';
-        
-        // Add title image
-        this.titleImage = new Image();
-        this.titleImage.src = 'assets/menu/title.png';
-        
-        // Add start button image
-        this.buttonImage = new Image();
-        this.buttonImage.src = 'assets/menu/start-game-button.png';
-        
-        // Add score image
-        this.scoreImage = new Image();
-        this.scoreImage.src = 'assets/menu/score-text.png';
-        
-        // Add game over image
-        this.gameOverImage = new Image();
-        this.gameOverImage.src = 'assets/menu/game-over-text.png';
-        
-        // Add try again button image
-        this.tryAgainImage = new Image();
-        this.tryAgainImage.src = 'assets/menu/try-again-button.png';
-        
-        // Add event listeners to verify image loading
-        this.playerImage.onload = () => {
-            console.log("Menu player image loaded successfully");
-        };
-        
-        this.titleImage.onload = () => {
-            console.log("Title image loaded successfully");
-        };
-        
-        this.buttonImage.onload = () => {
-            console.log("Start button image loaded successfully");
-            // Use the dimensions from constants - updated reference
-            this.startButton.width = MENU.START_GAME_BUTTON.WIDTH;
-            this.startButton.height = MENU.START_GAME_BUTTON.HEIGHT;
-        };
-        
-        this.scoreImage.onload = () => {
-            console.log("Score image loaded successfully");
-        };
-        
-        this.gameOverImage.onload = () => {
-            console.log("Game over image loaded successfully");
-        };
-        
-        this.tryAgainImage.onload = () => {
-            console.log("Try again button image loaded successfully");
-        };
-        
-        this.playerImage.onerror = (e) => {
-            console.error("Error loading menu player image:", e);
-        };
-        
-        this.buttonImage.onerror = (e) => {
-            console.error("Error loading button image:", e);
-        };
-        
         // Button areas for click detection
         this.startButton = {
-            x: width * 0.3, // Aligned with the title text
-            y: height * MENU.START_GAME_BUTTON.POSITION_Y, // Updated reference
-            width: 200,  // Default size, will be overridden when image loads
-            height: 60,  // Default size, will be overridden when image loads
+            x: width * 0.3,
+            y: height * MENU.START_GAME_BUTTON.POSITION_Y,
+            width: MENU.START_GAME_BUTTON.WIDTH,  // Use constants directly
+            height: MENU.START_GAME_BUTTON.HEIGHT,
             text: 'Start Game'
         };
         
         // Score tracking for game over screen
         this.finalScore = 0;
-
-        // Score display properties
         this.currentScore = 0;
         this.scorePosition = {
             x: 20,
@@ -126,14 +64,14 @@ class MenuManager {
     }
     
     drawScore(ctx) {
-        if (this.scoreImage && this.scoreImage.complete) {
-            // Calculate score image dimensions - updated to use WIDTH_RATIO
+        if (ASSETS.isImageReady('scoreText')) {
+            // Calculate score image dimensions
             const scoreHeight = this.height * MENU.SCORE.HEIGHT_RATIO;
             const scoreWidth = this.width * MENU.SCORE.WIDTH_RATIO;
             
             // Draw the score image
             ctx.drawImage(
-                this.scoreImage,
+                ASSETS.getImage('scoreText'),
                 MENU.SCORE.POSITION_X,
                 MENU.SCORE.POSITION_Y,
                 scoreWidth,
@@ -141,13 +79,13 @@ class MenuManager {
             );
             
             // Draw the score text overlaid on the image
-            ctx.font = 'bold 24px Arial';
+            ctx.font = 'bold 32px Arial';
             ctx.fillStyle = 'white';
             ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
             ctx.fillText(`${Math.floor(this.currentScore)}`, 
-                MENU.SCORE.POSITION_X + scoreWidth * 0.6, // Position text after "Score:" part of image
-                MENU.SCORE.POSITION_Y + scoreHeight/2);
+                MENU.SCORE.POSITION_X + scoreWidth, // Position text after "Score:" part of image
+                MENU.SCORE.POSITION_Y + scoreHeight / 1.7); // Centered vertically
         } else {
             // Fallback to original text method
             ctx.font = 'bold 24px Arial';
@@ -183,13 +121,13 @@ class MenuManager {
     
     drawMainMenu(ctx) {
         // Draw title image instead of text
-        if (this.titleImage && this.titleImage.complete) {
+        if (ASSETS.isImageReady('title')) {
             // Calculate dimensions using both WIDTH_RATIO and HEIGHT_RATIO
             const titleHeight = this.height * MENU.TITLE.HEIGHT_RATIO;
             const titleWidth = this.width * MENU.TITLE.WIDTH_RATIO;
             
             ctx.drawImage(
-                this.titleImage,
+                ASSETS.getImage('title'),
                 this.width * 0.2,
                 this.height * MENU.TITLE.POSITION_Y,
                 titleWidth,
@@ -207,16 +145,15 @@ class MenuManager {
         this.drawButton(ctx, this.startButton);
         
         // Draw player image on the right
-        if (this.playerImage.complete) {
+        if (ASSETS.isImageReady('menuPlayer')) {
             // Use original size or cap at a maximum height that fits well
             let imgWidth, imgHeight;
+            const playerImg = ASSETS.getImage('menuPlayer');
             
-            // If we know the original size (566x626)
-            const originalWidth = 566;
-            const originalHeight = 626;
-            
-            // Calculate dimensions that preserve aspect ratio but fit nicely in the menu
-            const maxHeight = this.height * 0.7; // 70% of the canvas height
+            // Calculate dimensions that preserve aspect ratio
+            const originalWidth = playerImg.width || 566;
+            const originalHeight = playerImg.height || 626;
+            const maxHeight = this.height * 0.7; // 70% of canvas height
             
             if (originalHeight > maxHeight) {
                 // Scale down proportionally if too large
@@ -229,7 +166,7 @@ class MenuManager {
             }
             
             ctx.drawImage(
-                this.playerImage,
+                playerImg,
                 this.width * 0.6, // Position on right side
                 this.height * 0.65 - imgHeight / 2, // Centered vertically
                 imgWidth,
@@ -240,13 +177,13 @@ class MenuManager {
     
     drawGameOver(ctx) {
         // Draw game over image instead of text
-        if (this.gameOverImage && this.gameOverImage.complete) {
+        if (ASSETS.isImageReady('gameOver')) {
             // Updated to use WIDTH_RATIO
             const gameOverHeight = this.height * MENU.GAMEOVER.HEIGHT_RATIO;
             const gameOverWidth = this.width * MENU.GAMEOVER.WIDTH_RATIO;
             
             ctx.drawImage(
-                this.gameOverImage,
+                ASSETS.getImage('gameOver'),
                 this.width * 0.5 - gameOverWidth / 2, // Center horizontally
                 this.height * MENU.GAMEOVER.POSITION_Y,
                 gameOverWidth,
@@ -261,28 +198,28 @@ class MenuManager {
         }
         
         // Draw score image instead of text
-        if (this.scoreImage && this.scoreImage.complete) {
+        if (ASSETS.isImageReady('scoreText')) {
             // Calculate score image dimensions
             const scoreHeight = this.height * MENU.GAMEOVER_SCORE.HEIGHT_RATIO;
             const scoreWidth = this.width * MENU.GAMEOVER_SCORE.WIDTH_RATIO;
             
             // Draw the score image centered below game over text
             ctx.drawImage(
-                this.scoreImage,
-                this.width * 0.5 - scoreWidth / 2, // Center horizontally
+                ASSETS.getImage('scoreText'),
+                this.width * 0.5 - scoreWidth / 1.5, // Center horizontally
                 this.height * MENU.GAMEOVER_SCORE.POSITION_Y,
                 scoreWidth,
                 scoreHeight
             );
             
             // Draw the score text overlaid on the image
-            ctx.font = 'bold 24px Arial';
+            ctx.font = 'bold 120px Arial';
             ctx.fillStyle = 'white';
             ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
             ctx.fillText(`${Math.floor(this.finalScore)}`, 
-                (this.width * 0.5 - scoreWidth / 2) + scoreWidth * 0.6, // Position text after "Score:" part of image
-                this.height * MENU.GAMEOVER_SCORE.POSITION_Y + scoreHeight/2);
+                (this.width * 0.5 - scoreWidth / 3.5) + scoreWidth * 0.65,
+                this.height * MENU.GAMEOVER_SCORE.POSITION_Y + scoreHeight / 1.75);
         } else {
             // Fallback to text if image isn't loaded
             ctx.font = '32px Arial';
@@ -291,8 +228,7 @@ class MenuManager {
             ctx.fillText(`Score: ${Math.floor(this.finalScore)}`, this.width * 0.5, this.height * 0.4);
         }
         
-        // Update button properties
-        this.startButton.text = 'Try Again';
+        // Update button properties - removed commented out unused code
         this.startButton.width = MENU.TRY_AGAIN.WIDTH;
         this.startButton.height = MENU.TRY_AGAIN.HEIGHT;
         this.startButton.x = this.width * 0.5 - this.startButton.width / 2; // Center horizontally
@@ -303,19 +239,19 @@ class MenuManager {
     }
     
     drawButton(ctx, button) {
-        if (this.menuState === 'main' && this.buttonImage && this.buttonImage.complete) {
+        if (this.menuState === 'main' && ASSETS.isImageReady('startButton')) {
             // Draw the start button using its image
             ctx.drawImage(
-                this.buttonImage,
+                ASSETS.getImage('startButton'),
                 button.x,
                 button.y,
                 button.width,
                 button.height
             );
-        } else if (this.menuState === 'gameover' && this.tryAgainImage && this.tryAgainImage.complete) {
+        } else if (this.menuState === 'gameover' && ASSETS.isImageReady('tryAgainButton')) {
             // Draw the try again button using its image
             ctx.drawImage(
-                this.tryAgainImage,
+                ASSETS.getImage('tryAgainButton'),
                 button.x,
                 button.y,
                 button.width,

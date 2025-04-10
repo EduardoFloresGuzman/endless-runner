@@ -15,9 +15,4 @@ function checkCollision(obj1, obj2) {
            obj1.y + obj1.height > obj2.y;
 }
 
-// Preload an image
-function loadImage(src) {
-    const img = new Image();
-    img.src = src;
-    return img;
-}
+// Removed unused loadImage function as it's now handled by the AssetManager

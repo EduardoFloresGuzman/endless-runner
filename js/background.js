@@ -10,51 +10,54 @@ class Background {
         this.layers = [
             // Far background (slowest)
             {
-                image: new Image(),
                 speed: BACKGROUND.FAR_SPEED,
                 x: 0,
-                width: 0, // Will be set when image loads
+                width: 0, // Will be set when we check image dimensions
                 height: 0,
-                overlap: BACKGROUND.OVERLAP
+                overlap: BACKGROUND.OVERLAP,
+                asset: 'bgFar'
             },
             // Mid background
             {
-                image: new Image(),
                 speed: BACKGROUND.MID_SPEED,
                 x: 0,
                 width: 0,
                 height: 0,
-                overlap: BACKGROUND.MID_OVERLAP // Use larger overlap for mid layer
+                overlap: BACKGROUND.MID_OVERLAP, // Use larger overlap for mid layer
+                asset: 'bgMid'
             },
             // Near background (fastest)
             {
-                image: new Image(),
                 speed: BACKGROUND.NEAR_SPEED,
                 x: 0,
                 width: 0,
                 height: 0,
-                overlap: BACKGROUND.NEAR_OVERLAP // Use largest overlap for near layer
+                overlap: BACKGROUND.NEAR_OVERLAP, // Use largest overlap for near layer
+                asset: 'bgNear'
             }
         ];
         
-        // Load the images
-        this.layers[0].image.src = 'assets/background/far.jpg';
-        this.layers[1].image.src = 'assets/background/mid.png';
-        this.layers[2].image.src = 'assets/background/ner.png'; // Fix: was using mid.png
-        
-        // Set dimensions when images load
+        // Initialize layer dimensions from asset manager
         this.layers.forEach(layer => {
-            layer.image.onload = () => {
-                layer.width = layer.image.width;
-                layer.height = layer.image.height;
-            };
+            if (ASSETS.isImageReady(layer.asset)) {
+                const img = ASSETS.getImage(layer.asset);
+                layer.width = img.width;
+                layer.height = img.height;
+            }
         });
     }
     
     update(gameSpeed) {
         // Update each layer's position
         this.layers.forEach(layer => {
-            if (layer.width === 0) return; // Skip if image not loaded yet
+            // Check if we have dimensions yet
+            if (layer.width === 0 && ASSETS.isImageReady(layer.asset)) {
+                const img = ASSETS.getImage(layer.asset);
+                layer.width = img.width;
+                layer.height = img.height;
+            }
+            
+            if (layer.width === 0) return; // Skip if dimensions not available
             
             // Move the layer based on its speed and the game speed
             layer.x -= layer.speed * gameSpeed;
@@ -71,7 +74,7 @@ class Background {
     draw(ctx) {
         // Draw each layer
         this.layers.forEach(layer => {
-            if (layer.width === 0) return; // Skip if image not loaded yet
+            if (layer.width === 0 || !ASSETS.isImageReady(layer.asset)) return; // Skip if not ready
             
             // We only need 3 instances max to cover the screen with overlap
             for (let i = 0; i < 3; i++) {
@@ -80,7 +83,7 @@ class Background {
                 // Only draw if visible on screen
                 if (xPos < this.gameWidth && xPos + layer.width > 0) {
                     ctx.drawImage(
-                        layer.image,
+                        ASSETS.getImage(layer.asset),
                         xPos, 0,
                         layer.width, this.gameHeight
                     );

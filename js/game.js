@@ -15,6 +15,23 @@ class Game {
         this.score = 0;
         this.gameSpeed = GAME.STARTING_SPEED;
         this.lastTime = 0;
+        this.isLoaded = false;
+        
+        // Setup loading screen first
+        this.loadingScreen = new LoadingScreen(this.canvas.width, this.canvas.height);
+        
+        // Register callback for when assets are loaded
+        ASSETS.onAllLoaded(() => {
+            console.log("All assets loaded successfully!");
+        });
+        
+        // Start the game loop immediately to show loading screen
+        this.animationFrameId = requestAnimationFrame(this.gameLoop.bind(this));
+    }
+    
+    // Initialize game objects after loading begins but before complete
+    initializeGame() {
+        if (this.isLoaded) return;
         
         // Game objects
         this.player = new Player(this.canvas.width, this.canvas.height);
@@ -29,10 +46,8 @@ class Game {
         // Event listeners
         this.setupEventListeners();
         
-        // Start the game loop immediately (not waiting for game to start)
-        this.animationFrameId = requestAnimationFrame(this.gameLoop.bind(this));
-        
-        console.log("Game initialized - Menu should be visible");
+        this.isLoaded = true;
+        console.log("Game initialized - Background will be visible during fade");
     }
     
     setupEventListeners() {
@@ -95,30 +110,46 @@ class Game {
     }
     
     update(deltaTime) {
-        // Only update game objects when the game is running
-        if (this.running) {
-            // Update background
-            this.background.update(this.gameSpeed);
+        // Update loading screen
+        if (!this.loadingScreen.isComplete) {
+            this.loadingScreen.update();
             
-            // Update player
-            this.player.update(this.gameSpeed);
-            
-            // Update obstacles
-            this.obstacleManager.update(deltaTime, this.gameSpeed);
-            
-            // Check collisions
-            if (this.obstacleManager.checkCollision(this.player)) {
-                this.gameOver();
+            // Initialize game during the fade-out period
+            if (this.loadingScreen.fadeOut && !this.isLoaded) {
+                this.initializeGame();
             }
-            
-            // Update score and game speed
-            this.score += 1;
-            // Update the canvas-rendered score instead of HTML element
-            this.menuManager.updateScore(Math.floor(this.score / GAME.SCORE_DIVIDER));
-            
-            // Increase game speed over time
-            this.gameSpeed = GAME.STARTING_SPEED + 
-                Math.floor(this.score / GAME.SPEED_INCREMENT_SCORE) * GAME.SPEED_INCREMENT;
+        }
+        
+        // Update game objects even during fade-out, but only if initialized
+        if (this.isLoaded) {
+            // Only update gameplay elements when the game is running
+            if (this.running) {
+                // Update background
+                this.background.update(this.gameSpeed);
+                
+                // Update player
+                this.player.update(this.gameSpeed);
+                
+                // Update obstacles
+                this.obstacleManager.update(deltaTime, this.gameSpeed);
+                
+                // Check collisions
+                if (this.obstacleManager.checkCollision(this.player)) {
+                    this.gameOver();
+                }
+                
+                // Update score and game speed
+                this.score += 1;
+                // Update the canvas-rendered score instead of HTML element
+                this.menuManager.updateScore(Math.floor(this.score / GAME.SCORE_DIVIDER));
+                
+                // Increase game speed over time
+                this.gameSpeed = GAME.STARTING_SPEED + 
+                    Math.floor(this.score / GAME.SPEED_INCREMENT_SCORE) * GAME.SPEED_INCREMENT;
+            } else {
+                // Even when not running, update background for visual effect
+                this.background.update(GAME.STARTING_SPEED * 0.5);
+            }
         }
     }
     
@@ -126,20 +157,28 @@ class Game {
         // Clear the canvas
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
-        // Draw background
-        this.background.draw(this.ctx);
+        // Draw game elements if initialized (even during fade-out)
+        if (this.isLoaded) {
+            // Draw background
+            this.background.draw(this.ctx);
+            
+            // Draw ground
+            this.ground.draw(this.ctx);
+            
+            // Draw player only if game is running
+            if (this.running) {
+                this.player.draw(this.ctx);
+                this.obstacleManager.draw(this.ctx);
+            }
+            
+            // Draw menu if visible
+            this.menuManager.draw(this.ctx);
+        }
         
-        // Draw ground
-        this.ground.draw(this.ctx);
-        
-        // Draw player
-        this.player.draw(this.ctx);
-        
-        // Draw obstacles
-        this.obstacleManager.draw(this.ctx);
-        
-        // Draw menu if visible
-        this.menuManager.draw(this.ctx);
+        // Draw loading screen on top if not complete
+        if (!this.loadingScreen.isComplete) {
+            this.loadingScreen.draw(this.ctx);
+        }
     }
     
     gameLoop(timestamp) {

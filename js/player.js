@@ -49,29 +49,10 @@ class Player {
             'idle-to-running': PLAYER.FRAMES.IDLE_TO_RUNNING
         };
         
-        // Load sprite images
-        this.sprites = {
-            'idle': [],
-            'running': [],
-            'jumping': [],
-            'idle-to-running': []
-        };
-        
-        this.loadSprites();
+        // We now use the asset manager
     }
     
-    loadSprites() {
-        // Load all frames for each animation type
-        const states = ['idle', 'running', 'jumping', 'idle-to-running'];
-        
-        for (const state of states) {
-            for (let i = 0; i < this.totalFrames[state]; i++) {
-                const img = new Image();
-                img.src = `assets/player/${state}/${i}.png`;
-                this.sprites[state].push(img);
-            }
-        }
-    }
+    // Removed loadSprites() method comment since it's better to not reference removed code
     
     startJump() {
         if (!this.isJumping) {
@@ -224,33 +205,33 @@ class Player {
     }
     
     draw(ctx) {
-        // Get the current sprite frame
-        const currentFrame = this.sprites[this.state][this.frameIndex];
+        // Get the appropriate asset key for the current frame
+        const assetKey = `player_${this.state}_${this.frameIndex}`;
         
-        // Check if the image is loaded
-        if (currentFrame && currentFrame.complete) {
+        // Check if the image is loaded in the asset manager
+        if (ASSETS.isImageReady(assetKey)) {
             ctx.drawImage(
-                currentFrame,
+                ASSETS.getImage(assetKey),
                 this.x,
                 this.y,
                 this.width,
                 this.height
             );
         } else {
-            // Fallback to rectangle if image not loaded
+            // Fallback to rectangle if image isn't loaded
             ctx.fillStyle = '#3498db';
             ctx.fillRect(this.x, this.y, this.width, this.height);
         }
         
-        // Debugging: draw visual sprite boundary
-        ctx.strokeStyle = 'yellow';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(this.x, this.y, this.width, this.height);
+        // // Debugging: draw visual sprite boundary
+        // ctx.strokeStyle = 'yellow';
+        // ctx.lineWidth = 1;
+        // ctx.strokeRect(this.x, this.y, this.width, this.height);
         
-        // Debugging: draw hitbox
-        ctx.strokeStyle = 'red';
-        ctx.lineWidth = 2;
-        const hitbox = this.getHitbox();
-        ctx.strokeRect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
+        // // Debugging: draw hitbox
+        // ctx.strokeStyle = 'red';
+        // ctx.lineWidth = 2;
+        // const hitbox = this.getHitbox();
+        // ctx.strokeRect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
     }
 }

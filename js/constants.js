@@ -81,34 +81,30 @@ const MENU = {
         HEIGHT: 200,
         POSITION_Y: 0.47 // Y position as percentage of canvas height
     },
-    GAMEOVER_BUTTON: {
-        WIDTH: 200,
-        HEIGHT: 80
-    },
     TITLE: {
         WIDTH_RATIO: 0.5,  // Added width ratio (60% of canvas height)
-        HEIGHT_RATIO: 0.50,
+        HEIGHT_RATIO: 0.3,
         POSITION_Y: 0.15
     },
     SCORE: {
-        WIDTH_RATIO: 0.3,  // Added width ratio (30% of canvas height)
+        WIDTH_RATIO: 0.1,  // Added width ratio (30% of canvas height)
         HEIGHT_RATIO: 0.1,
         POSITION_X: 20,
-        POSITION_Y: 40
+        POSITION_Y: 10
     },
     GAMEOVER: {
-        WIDTH_RATIO: 0.5,  // Added width ratio (50% of canvas height)
-        HEIGHT_RATIO: 0.2,
-        POSITION_Y: 0.25
+        WIDTH_RATIO: 0.6,  // Added width ratio (50% of canvas height)
+        HEIGHT_RATIO: 0.5,
+        POSITION_Y: 0.1
     },
     GAMEOVER_SCORE: {
         WIDTH_RATIO: 0.3,  // 30% of canvas width
-        HEIGHT_RATIO: 0.1, // 10% of canvas height
-        POSITION_Y: 0.4,   // Position below game over text
+        HEIGHT_RATIO: 0.3, // 10% of canvas height
+        POSITION_Y: 0.45,   // Position below game over text
     },
     TRY_AGAIN: {  // Already has WIDTH and HEIGHT
-        WIDTH: 200,
-        HEIGHT: 80,
-        POSITION_Y: 0.55
+        WIDTH: 370,
+        HEIGHT: 200,
+        POSITION_Y: 0.65
     }
 };
