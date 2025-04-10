@@ -15,4 +15,7 @@ function checkCollision(obj1, obj2) {
            obj1.y + obj1.height > obj2.y;
 }
 
-// Removed unused loadImage function as it's now handled by the AssetManager
+// Deep clone an object
+function deepClone(obj) {
+    return JSON.parse(JSON.stringify(obj));
+}

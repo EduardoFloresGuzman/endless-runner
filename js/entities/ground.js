@@ -1,12 +1,12 @@
 /**
- * Ground class for the endless runner game
+ * Ground entity for the endless runner game
  */
-class Ground {
+class Ground extends Entity {
     constructor(gameWidth, gameHeight) {
+        super(0, gameHeight - GAME.GROUND_HEIGHT, gameWidth, GAME.GROUND_HEIGHT);
+        
         this.gameWidth = gameWidth;
         this.gameHeight = gameHeight;
-        this.height = GAME.GROUND_HEIGHT;
-        this.y = this.gameHeight - this.height;
         this.color = 'white';
         this.borderColor = '#f0f0f0';
     }

@@ -1,17 +1,17 @@
 /**
- * Loading screen system for the endless runner game
- * Displays a loading animation while assets are being loaded
+ * Loading state that shows the loading screen and handles asset loading
  */
-class LoadingScreen {
-    constructor(width, height) {
-        this.width = width;
-        this.height = height;
+class LoadingState extends BaseState {
+    constructor(game) {
+        super(game);
+        
+        this.width = game.canvas.width;
+        this.height = game.canvas.height;
         this.progress = 0;
-        this.displayProgress = 0; // Smooth progress display
-        this.isComplete = false;
+        this.displayProgress = 0;
         this.fadeOut = false;
         this.opacity = 1.0;
-        this.fadeSpeed = 0.01; // Slow fade speed for smooth transition
+        this.fadeSpeed = 0.01;
         
         // Logo/title for loading screen
         this.logoImage = new Image();
@@ -21,52 +21,52 @@ class LoadingScreen {
             this.logoLoaded = true;
         };
         
-        // Initialize with a tiny progress to show something immediately
         this.minProgress = 0.05;
-        
-        console.log("LoadingScreen initialized with black fade effect");
     }
     
-    update() {
+    enter() {
+        console.log("Entering loading state");
+        // Begin preloading assets
+        preloadAssets();
+        
+        // Register the complete callback
+        ASSETS.onAllLoaded(() => {
+            console.log("All assets loaded successfully!");
+        });
+    }
+    
+    update(deltaTime) {
         // Update current loading progress from asset manager
         this.progress = Math.max(this.minProgress, ASSETS.getProgress());
         
-        // Create a smoother visual effect by gradually increasing display progress
+        // Create a smoother visual effect
         if (this.displayProgress < this.progress) {
-            this.displayProgress += 0.01; // Smooth animation
+            this.displayProgress += 0.01;
             if (this.displayProgress > this.progress) {
                 this.displayProgress = this.progress;
             }
         }
         
-        // Log progress for debugging
-        if (Math.floor(this.progress * 100) % 20 === 0) { // Log every 20%
-            console.log(`Loading progress: ${Math.floor(this.progress * 100)}%`);
-            console.log(`Assets loaded: ${ASSETS.loadedAssets}/${ASSETS.totalAssets}`);
-        }
-        
         // If assets are loaded, start fade out animation
         if (this.progress >= 1 && !this.fadeOut) {
-            console.log("All assets loaded, beginning black fade-out");
+            console.log("All assets loaded, beginning fade-out");
             setTimeout(() => {
                 this.fadeOut = true;
-            }, 500); // Delay before starting fade out
+            }, 500);
         }
         
-        // Handle fade out animation - opacity decreases until transparent
+        // Handle fade out animation
         if (this.fadeOut) {
             this.opacity -= this.fadeSpeed;
             if (this.opacity <= 0) {
                 this.opacity = 0;
-                this.isComplete = true;
-                console.log("Loading screen fade-out complete");
+                console.log("Loading complete, switching to menu state");
+                this.game.stateManager.changeState('menu');
             }
         }
     }
     
-    draw(ctx) {
-        if (this.isComplete) return;
-        
+    render(ctx) {
         // Save current context state
         ctx.save();
         
@@ -76,7 +76,7 @@ class LoadingScreen {
         
         // Only draw UI elements if opacity is high enough to be visible
         if (this.opacity > 0.1) {
-            // Draw logo if loaded - logo is still visible on black background
+            // Draw logo if loaded
             if (this.logoLoaded) {
                 ctx.globalAlpha = this.opacity;
                 const logoWidth = this.width * 0.6;
@@ -90,7 +90,7 @@ class LoadingScreen {
                 );
             }
             
-            // Draw loading text - use light color for better visibility on black
+            // Draw loading text
             ctx.font = 'bold 24px Arial';
             ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
             ctx.textAlign = 'center';
@@ -104,11 +104,11 @@ class LoadingScreen {
             ctx.fillStyle = `rgba(50, 50, 50, ${this.opacity})`;
             ctx.fillRect(barX, barY, barWidth, barHeight);
             
-            // Draw progress bar - use green color which works well on black
+            // Draw progress bar
             ctx.fillStyle = `rgba(76, 175, 80, ${this.opacity})`;
             ctx.fillRect(barX, barY, barWidth * this.displayProgress, barHeight);
             
-            // Draw loading percentage - use white text for black background
+            // Draw loading percentage
             ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
             ctx.fillText(`${Math.floor(this.displayProgress * 100)}%`, this.width / 2, barY + barHeight + 30);
         }

@@ -1,5 +1,5 @@
 /**
- * Background management for endless runner game
+ * Background entity for endless runner game
  */
 class Background {
     constructor(gameWidth, gameHeight) {

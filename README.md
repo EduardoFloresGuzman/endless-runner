@@ -64,11 +64,14 @@ Alternatively, you can play the game online at: [Game URL](#)
 
 The game is structured with a modular approach:
 
-- `constants.js`: Central configuration for all game parameters
-- `player.js`: Player character logic and animations
-- `obstacles.js`: Obstacle generation and management
-- `game.js`: Main game loop and state management
-- `util.js`: Utility functions for collision detection and more
+- `js/constants.js`: Central configuration for all game parameters
+- `js/core/`: Core engine components (Entity base class, Game engine)
+- `js/entities/`: Game entities (Player, Obstacles, Background, Ground)
+- `js/managers/`: Manager classes (Assets, Input, State)
+- `js/states/`: Game states (Loading, Menu, Playing, GameOver)
+- `js/systems/`: Game systems (Collision detection, Scoring)
+- `js/ui/`: UI components (UI Manager)
+- `js/utils/`: Utility functions for collision detection and more
 
 ## 🧪 Future Enhancements
 
