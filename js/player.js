@@ -242,15 +242,15 @@ class Player {
             ctx.fillRect(this.x, this.y, this.width, this.height);
         }
         
-        // // Debugging: draw visual sprite boundary
-        // ctx.strokeStyle = 'yellow';
-        // ctx.lineWidth = 1;
-        // ctx.strokeRect(this.x, this.y, this.width, this.height);
+        // Debugging: draw visual sprite boundary
+        ctx.strokeStyle = 'yellow';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(this.x, this.y, this.width, this.height);
         
-        // // Debugging: draw hitbox
-        // ctx.strokeStyle = 'red';
-        // ctx.lineWidth = 2;
-        // const hitbox = this.getHitbox();
-        // ctx.strokeRect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
+        // Debugging: draw hitbox
+        ctx.strokeStyle = 'red';
+        ctx.lineWidth = 2;
+        const hitbox = this.getHitbox();
+        ctx.strokeRect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
     }
 }
