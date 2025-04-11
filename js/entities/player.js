@@ -36,6 +36,7 @@ class Player extends Entity {
         // Player state
         this.isAlive = true;
         this.state = 'idle';
+        this.isFalling = false; // New state for falling into holes
         
         // Animation properties
         this.frameIndex = 0;
@@ -46,7 +47,8 @@ class Player extends Entity {
             'idle': PLAYER.FRAMES.IDLE,
             'running': PLAYER.FRAMES.RUNNING,
             'jumping': PLAYER.FRAMES.JUMPING,
-            'idle-to-running': PLAYER.FRAMES.IDLE_TO_RUNNING
+            'idle-to-running': PLAYER.FRAMES.IDLE_TO_RUNNING,
+            'falling': 1 // Single frame for falling animation
         };
     }
     
@@ -61,7 +63,8 @@ class Player extends Entity {
     }
     
     startJump() {
-        if (!this.isJumping) {
+        // Prevent jumping if the player is falling into a hole
+        if (!this.isJumping && !this.isFalling) {
             this.speed = this.initialJumpPower;
             this.isJumping = true;
             this.isJumpButtonHeld = true;
@@ -147,9 +150,35 @@ class Player extends Entity {
         }
     }
     
+    isOnGround() {
+        // Check if player is on the ground (not jumping)
+        return !this.isJumping && 
+               !this.isFalling && 
+               this.y >= this.gameHeight - this.height - GAME.GROUND_HEIGHT;
+    }
+    
+    fall() {
+        // Player is falling into a hole
+        if (!this.isFalling) {
+            this.isFalling = true;
+            this.speed = 4; // Downward speed for falling
+            this.setState('falling');
+            
+            // Disable jump ability when falling
+            this.isJumpButtonHeld = false;
+            this.canChargeJump = false;
+        }
+    }
+    
     update(gameSpeed = 1) {
         // Update animation speed based on game speed
         this.updateAnimationSpeed(gameSpeed);
+        
+        // Special handling for falling into a hole
+        if (this.isFalling) {
+            this.y += this.speed; // Keep falling
+            return; // Skip regular physics when falling into a hole
+        }
         
         // If jump button is held, continue increasing jump height
         if (this.isJumpButtonHeld) {
@@ -212,5 +241,29 @@ class Player extends Entity {
             ctx.fillStyle = '#3498db';
             ctx.fillRect(this.x, this.y, this.width, this.height);
         }
+        
+        // Draw debug hitbox if debug mode is enabled
+        if (DEBUG.ENABLED && DEBUG.SHOW_HITBOXES) {
+            this.drawHitbox(ctx);
+            
+            // Debug info about player state
+            ctx.font = DEBUG.FONT;
+            ctx.fillStyle = DEBUG.TEXT_COLOR;
+            ctx.fillText(`X: ${Math.floor(this.x)}, Y: ${Math.floor(this.y)}`, this.x, this.y - 20);
+            ctx.fillText(`Jumping: ${this.isJumping}, Falling: ${this.isFalling}`, this.x, this.y - 5);
+        }
+    }
+    
+    // Draw hitbox for debugging
+    drawHitbox(ctx) {
+        const hitbox = this.getHitbox();
+        
+        ctx.strokeStyle = DEBUG.HITBOX_COLOR;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
+        
+        // Fill hitbox with semi-transparent color
+        ctx.fillStyle = DEBUG.HITBOX_COLOR;
+        ctx.fillRect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
     }
 }

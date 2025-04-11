@@ -30,6 +30,22 @@ class Obstacle extends Entity {
         // Draw the obstacle (simple rectangle for now)
         ctx.fillStyle = '#e74c3c';
         ctx.fillRect(this.x, this.y, this.width, this.height);
+        
+        // Draw debug hitbox
+        if (DEBUG.ENABLED && DEBUG.SHOW_HITBOXES) {
+            this.drawHitbox(ctx);
+        }
+    }
+    
+    // Draw hitbox for debugging
+    drawHitbox(ctx) {
+        ctx.strokeStyle = DEBUG.HITBOX_COLOR;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(this.x, this.y, this.width, this.height);
+        
+        // Fill hitbox with semi-transparent color
+        ctx.fillStyle = DEBUG.HITBOX_COLOR;
+        ctx.fillRect(this.x, this.y, this.width, this.height);
     }
 }
 

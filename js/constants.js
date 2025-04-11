@@ -14,7 +14,13 @@ const GAME = {
     STARTING_SPEED: 1,
     SPEED_INCREMENT: 0.1,
     SPEED_INCREMENT_SCORE: 1000,
-    SCORE_DIVIDER: 10
+    SCORE_DIVIDER: 10,
+    
+    // Ground segment configuration
+    GROUND_SEGMENT_WIDTH: 200,
+    MIN_GAP_WIDTH: 80,
+    MAX_GAP_WIDTH: 150,
+    GAP_CHANCE: 0.4 // 40% chance of a gap after each segment
 };
 
 // Player constants
@@ -107,4 +113,16 @@ const MENU = {
         HEIGHT: 200,
         POSITION_Y: 0.65
     }
+};
+
+// Debug settings
+const DEBUG = {
+    ENABLED: false, // Can be toggled during gameplay
+    SHOW_HITBOXES: true,
+    HITBOX_COLOR: 'rgba(255, 0, 0, 0.5)',
+    GROUND_SEGMENT_COLOR: 'rgba(0, 255, 0, 0.3)',
+    GAP_COLOR: 'rgba(255, 0, 0, 0.3)',
+    TEXT_COLOR: 'white',
+    FONT: '14px Arial',
+    GAPS_ENABLED: false  // New flag to toggle gaps on/off
 };
