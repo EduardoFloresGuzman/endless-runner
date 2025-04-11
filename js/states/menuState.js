@@ -7,23 +7,14 @@ class MenuState extends BaseState {
         
         // Create UI manager for menu elements
         this.uiManager = new UIManager(game.canvas.width, game.canvas.height);
-        
-        // Background setup
-        this.background = null;
-        this.ground = null;
     }
     
     enter() {
         console.log("Entering menu state");
         
-        // Create background and ground if they don't exist
-        if (!this.background) {
-            this.background = new Background(this.game.canvas.width, this.game.canvas.height);
-        }
-        
-        if (!this.ground) {
-            this.ground = new Ground(this.game.canvas.width, this.game.canvas.height);
-        }
+        // Create background and ground
+        this.background = new Background(this.game.canvas.width, this.game.canvas.height);
+        this.ground = new Ground(this.game.canvas.width, this.game.canvas.height);
         
         // Configure UI for main menu
         this.uiManager.setupMainMenu();

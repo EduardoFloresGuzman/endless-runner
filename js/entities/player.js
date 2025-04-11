@@ -37,6 +37,9 @@ class Player extends Entity {
         this.isAlive = true;
         this.state = 'idle';
         this.isFalling = false; // New state for falling into holes
+        this.isFlying = false;  // New state for flying mode
+        this.targetFlyY = 0;    // Target Y position when flying
+        this.isExitingFlyMode = false; // Flag to track transition from flying to ground
         
         // Animation properties
         this.frameIndex = 0;
@@ -170,6 +173,24 @@ class Player extends Entity {
         }
     }
     
+    // New methods for flying functionality
+    enterFlyMode(targetY) {
+        if (this.isFalling) return; // Can't fly if falling into a hole
+        
+        this.isFlying = true;
+        this.isJumping = false; // Cancel any ongoing jump
+        this.targetFlyY = targetY - this.height/2; // Center player at target Y
+        this.setState('jumping'); // Use jumping sprite for flying as requested
+    }
+    
+    exitFlyMode() {
+        if (!this.isFlying) return;
+        
+        this.isFlying = false;        // No longer in flying mode
+        this.speed = 0;               // Reset speed before falling
+        this.isExitingFlyMode = true; // Mark that we're in the transition state
+    }
+    
     update(gameSpeed = 1) {
         // Update animation speed based on game speed
         this.updateAnimationSpeed(gameSpeed);
@@ -178,6 +199,23 @@ class Player extends Entity {
         if (this.isFalling) {
             this.y += this.speed; // Keep falling
             return; // Skip regular physics when falling into a hole
+        }
+        
+        // Special handling for flying mode
+        if (this.isFlying) {
+            // Smoothly move towards target Y position
+            const flySpeed = 10;
+            const distance = this.targetFlyY - this.y;
+            
+            if (Math.abs(distance) > 1) {
+                this.y += distance * 0.1; // Smooth approach to target
+            } else {
+                this.y = this.targetFlyY; // Snap to exact position when close
+            }
+            
+            // Keep animation running while flying
+            this.updateAnimation();
+            return; // Skip regular physics when flying
         }
         
         // If jump button is held, continue increasing jump height
@@ -202,7 +240,11 @@ class Player extends Entity {
             this.y = this.gameHeight - this.height - GAME.GROUND_HEIGHT;
             this.speed = 0;
             
-            if (this.isJumping) {
+            // Handle landing after exiting fly mode
+            if (this.isExitingFlyMode) {
+                this.isExitingFlyMode = false;
+                this.setState('running'); // Explicitly set to running when landing
+            } else if (this.isJumping) {
                 this.isJumping = false;
                 // If we were jumping, transition to running
                 if (this.state === 'jumping') {
@@ -212,8 +254,8 @@ class Player extends Entity {
         }
         
         // Set the correct animation state
-        if (this.isJumping) {
-            this.setState('jumping');
+        if (this.isJumping || this.isExitingFlyMode) {
+            this.setState('jumping');  // Show jumping animation while falling
         } else if (this.state === 'idle' && this.isAlive) {
             // Transition from idle to running after a short delay
             this.setState('idle-to-running');

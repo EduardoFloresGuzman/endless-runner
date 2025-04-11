@@ -12,6 +12,7 @@ class LoadingState extends BaseState {
         this.fadeOut = false;
         this.opacity = 1.0;
         this.fadeSpeed = 0.01;
+        this.minProgress = 0.05; // Add this line to define the minimum progress
         
         // Logo/title for loading screen
         this.logoImage = new Image();
@@ -20,8 +21,6 @@ class LoadingState extends BaseState {
         this.logoImage.onload = () => {
             this.logoLoaded = true;
         };
-        
-        this.minProgress = 0.05;
     }
     
     enter() {

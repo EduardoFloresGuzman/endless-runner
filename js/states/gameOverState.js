@@ -8,10 +8,6 @@ class GameOverState extends BaseState {
         // UI manager for game over screen
         this.uiManager = new UIManager(game.canvas.width, game.canvas.height);
         
-        // Background objects that continue to animate
-        this.background = null;
-        this.ground = null;
-        
         // Final score
         this.finalScore = 0;
     }
@@ -22,14 +18,9 @@ class GameOverState extends BaseState {
         // Store the final score
         this.finalScore = data && data.finalScore ? data.finalScore : 0;
         
-        // Create background and ground if they don't exist
-        if (!this.background) {
-            this.background = new Background(this.game.canvas.width, this.game.canvas.height);
-        }
-        
-        if (!this.ground) {
-            this.ground = new Ground(this.game.canvas.width, this.game.canvas.height);
-        }
+        // Create background and ground
+        this.background = new Background(this.game.canvas.width, this.game.canvas.height);
+        this.ground = new Ground(this.game.canvas.width, this.game.canvas.height);
         
         // Configure UI for game over screen
         this.uiManager.setupGameOver(this.finalScore);

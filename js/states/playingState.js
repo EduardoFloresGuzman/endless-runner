@@ -8,18 +8,14 @@ class PlayingState extends BaseState {
         // Game systems
         this.collisionSystem = new CollisionSystem();
         this.scoreSystem = new ScoreSystem();
-        
-        // Reset when entering state
-        this.background = null;
-        this.ground = null;
-        this.player = null;
-        this.obstacleManager = null;
+        this.powerupManager = new PowerupManager();
         
         // Game properties
         this.gameSpeed = GAME.STARTING_SPEED;
         
-        // Set up keyboard listener for debug toggle
+        // Set up keyboard listeners
         this.setupDebugControls();
+        this.setupPlayerControls();
     }
     
     enter() {
@@ -48,20 +44,21 @@ class PlayingState extends BaseState {
         // Update ground - pass game speed for scrolling
         this.ground.update(this.gameSpeed);
         
-        // Update player
+        // Update player (including flying behavior if active)
         this.player.update(this.gameSpeed);
         
         // Update obstacles
         this.obstacleManager.update(deltaTime, this.gameSpeed);
         
-        // Check collisions with obstacles
-        if (this.collisionSystem.checkCollision(this.player, this.obstacleManager)) {
+        // Check collisions with obstacles (don't check when flying)
+        if (!this.player.isFlying && this.collisionSystem.checkCollision(this.player, this.obstacleManager)) {
             this.gameOver();
             return;
         }
         
-        // Check if player is falling into a hole
-        if (this.player.isOnGround() && 
+        // Check if player is falling into a hole (skip check when flying)
+        if (!this.player.isFlying && 
+            this.player.isOnGround() && 
             !this.player.isFalling &&
             this.ground.isOverGap(this.player.x, this.player.width)) {
             
@@ -78,6 +75,9 @@ class PlayingState extends BaseState {
         // Increase game speed over time
         this.gameSpeed = GAME.STARTING_SPEED + 
             Math.floor(this.scoreSystem.score / GAME.SPEED_INCREMENT_SCORE) * GAME.SPEED_INCREMENT;
+        
+        // Update powerups
+        this.powerupManager.update(deltaTime, this.player);
     }
     
     render(ctx) {
@@ -108,6 +108,7 @@ class PlayingState extends BaseState {
         ctx.fillText('DEBUG MODE: Press D to toggle', 10, 60);
         ctx.fillText(`Game Speed: ${this.gameSpeed.toFixed(2)}`, 10, 80);
         ctx.fillText(`Gaps Enabled: ${DEBUG.GAPS_ENABLED ? 'YES' : 'NO'} (Press G to toggle)`, 10, 100);
+        ctx.fillText(`Flying: ${this.player.isFlying ? 'YES' : 'NO'} (Press T to toggle)`, 10, 120);
     }
     
     onInputDown() {
@@ -165,6 +166,22 @@ class PlayingState extends BaseState {
                     if (!DEBUG.GAPS_ENABLED) {
                         this.ground.segments = oldGround.segments.filter(segment => !segment.isGap);
                     }
+                }
+            }
+        });
+    }
+    
+    setupPlayerControls() {
+        // Add event listener for the 'T' key to toggle flying mode
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 't' || event.key === 'T') {
+                if (this.player) {
+                    if (this.powerupManager.isActive('fly')) {
+                        this.powerupManager.cancel('fly', this.player);
+                    } else {
+                        this.powerupManager.activate('fly', this.player);
+                    }
+                    console.log(`Flying mode: ${this.player.isFlying ? 'ON' : 'OFF'}`);
                 }
             }
         });
