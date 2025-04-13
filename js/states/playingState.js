@@ -27,6 +27,9 @@ class PlayingState extends BaseState {
         this.player = new Player(this.game.canvas.width, this.game.canvas.height);
         this.obstacleManager = new ObstacleManager(this.game.canvas.width, this.game.canvas.height);
         
+        // Give the player a reference to the game for score updates
+        this.player.game = this.game;
+        
         // Initialize player
         this.player.setState('idle');
         
@@ -38,17 +41,21 @@ class PlayingState extends BaseState {
     }
     
     update(deltaTime) {
-        // Update background
-        this.background.update(this.gameSpeed);
+        // Get current powerup multipliers
+        const powerupSpeedMultiplier = this.powerupManager.getSpeedMultiplier();
+        const scoreMultiplier = this.powerupManager.getScoreMultiplier();
         
-        // Update ground - pass game speed for scrolling
-        this.ground.update(this.gameSpeed);
+        // Update background with boosted speed when in fly mode
+        this.background.update(this.gameSpeed * powerupSpeedMultiplier);
         
-        // Update player (including flying behavior if active)
-        this.player.update(this.gameSpeed);
+        // Update ground with boosted speed when in fly mode
+        this.ground.update(this.gameSpeed * powerupSpeedMultiplier);
         
-        // Update obstacles
-        this.obstacleManager.update(deltaTime, this.gameSpeed);
+        // Update player with speed multiplier to animate faster during fly mode
+        this.player.update(this.gameSpeed * powerupSpeedMultiplier);
+        
+        // Update obstacles with boosted speed when in fly mode
+        this.obstacleManager.update(deltaTime, this.gameSpeed * powerupSpeedMultiplier);
         
         // Check collisions with obstacles (don't check when flying)
         if (!this.player.isFlying && this.collisionSystem.checkCollision(this.player, this.obstacleManager)) {
@@ -69,8 +76,8 @@ class PlayingState extends BaseState {
             return;
         }
         
-        // Update score and game speed
-        this.scoreSystem.updateScore(deltaTime);
+        // Update score with boosted multiplier when in fly mode
+        this.scoreSystem.updateScore(deltaTime, scoreMultiplier);
         
         // Increase game speed over time
         this.gameSpeed = GAME.STARTING_SPEED + 
@@ -109,6 +116,12 @@ class PlayingState extends BaseState {
         ctx.fillText(`Game Speed: ${this.gameSpeed.toFixed(2)}`, 10, 80);
         ctx.fillText(`Gaps Enabled: ${DEBUG.GAPS_ENABLED ? 'YES' : 'NO'} (Press G to toggle)`, 10, 100);
         ctx.fillText(`Flying: ${this.player.isFlying ? 'YES' : 'NO'} (Press T to toggle)`, 10, 120);
+        
+        // Add speed multiplier info when in fly mode
+        if (this.player.isFlying) {
+            ctx.fillText(`Speed Boost: ${this.powerupManager.getSpeedMultiplier().toFixed(1)}x`, 10, 140);
+            ctx.fillText(`Score Boost: ${this.powerupManager.getScoreMultiplier().toFixed(1)}x`, 10, 160);
+        }
     }
     
     onInputDown() {

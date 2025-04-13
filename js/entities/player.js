@@ -40,6 +40,8 @@ class Player extends Entity {
         this.isFlying = false;  // New state for flying mode
         this.targetFlyY = 0;    // Target Y position when flying
         this.isExitingFlyMode = false; // Flag to track transition from flying to ground
+        this.flySpeedMultiplier = 1.0; // Speed multiplier during fly mode
+        this.flyScoreMultiplier = 1.0; // Score multiplier during fly mode
         
         // Animation properties
         this.frameIndex = 0;
@@ -193,7 +195,7 @@ class Player extends Entity {
     
     update(gameSpeed = 1) {
         // Update animation speed based on game speed
-        this.updateAnimationSpeed(gameSpeed);
+        this.updateAnimationSpeed(gameSpeed * (this.isFlying ? this.flySpeedMultiplier : 1));
         
         // Special handling for falling into a hole
         if (this.isFalling) {

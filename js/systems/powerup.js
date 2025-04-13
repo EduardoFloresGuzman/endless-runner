@@ -70,6 +70,9 @@ class FlyPowerup extends Powerup {
         super(duration);
         this.targetYRatio = targetYRatio; // Position as ratio of screen height
         this.active = false;
+        this.speedBoostFactor = 3.0; // How much faster everything moves during fly mode
+        this.scoreMultiplier = 8.0; // Increased score multiplier to make it more noticeable
+        this.bonusPoints = 100; // Instant bonus points when activating
     }
     
     _onActivate(player) {
@@ -88,14 +91,28 @@ class FlyPowerup extends Powerup {
         player.targetFlyY = targetY - player.height/2;
         player.setState('jumping'); // Use jumping sprite for flying
         
-        console.log("Fly powerup activated!");
+        // Apply speed boost effect to player
+        player.flySpeedMultiplier = this.speedBoostFactor;
+        player.flyScoreMultiplier = this.scoreMultiplier;
+        
+        // Add immediate score bonus when activating fly mode
+        if (player.game && player.game.scoreSystem) {
+            player.game.scoreSystem.addBonus(this.bonusPoints);
+        }
+        
+        console.log(`Fly powerup activated! Speed: ${this.speedBoostFactor}x, Score: ${this.scoreMultiplier}x`);
     }
     
     _onUpdate(deltaTime, player) {
-        // Nothing special needed here as player.update() handles the flying physics
+        // Create particle trail effect or other visual feedback during fly mode
+        // This would be implemented if we had a particle system
     }
     
     _onDeactivate(player) {
+        // Reset speed multipliers
+        player.flySpeedMultiplier = 1.0;
+        player.flyScoreMultiplier = 1.0;
+        
         player.exitFlyMode();
         console.log("Fly powerup deactivated!");
     }
@@ -154,5 +171,31 @@ class PowerupManager {
         Object.values(this.powerups).forEach(powerup => {
             powerup.update(deltaTime, player);
         });
+    }
+    
+    /**
+     * Get the current combined speed multiplier from all active powerups
+     */
+    getSpeedMultiplier() {
+        let multiplier = 1.0;
+        Object.values(this.powerups).forEach(powerup => {
+            if (powerup.isActive && powerup instanceof FlyPowerup) {
+                multiplier *= powerup.speedBoostFactor;
+            }
+        });
+        return multiplier;
+    }
+    
+    /**
+     * Get the current combined score multiplier from all active powerups
+     */
+    getScoreMultiplier() {
+        let multiplier = 1.0;
+        Object.values(this.powerups).forEach(powerup => {
+            if (powerup.isActive && powerup instanceof FlyPowerup) {
+                multiplier *= powerup.scoreMultiplier;
+            }
+        });
+        return multiplier;
     }
 }
