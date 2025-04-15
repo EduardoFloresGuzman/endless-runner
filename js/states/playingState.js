@@ -79,9 +79,9 @@ class PlayingState extends BaseState {
         // Update score with boosted multiplier when in fly mode
         this.scoreSystem.updateScore(deltaTime, scoreMultiplier);
         
-        // Increase game speed over time
-        this.gameSpeed = GAME.STARTING_SPEED + 
-            Math.floor(this.scoreSystem.score / GAME.SPEED_INCREMENT_SCORE) * GAME.SPEED_INCREMENT;
+        // REMOVED: Progressive game speed increase based on score
+        // Now the game speed remains constant at GAME.STARTING_SPEED
+        // Only the flying power-up will affect the game speed
         
         // Update powerups
         this.powerupManager.update(deltaTime, this.player);
