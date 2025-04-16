@@ -45,22 +45,36 @@ class PlayingState extends BaseState {
         const powerupSpeedMultiplier = this.powerupManager.getSpeedMultiplier();
         const scoreMultiplier = this.powerupManager.getScoreMultiplier();
         
-        // Update background with boosted speed when in fly mode
+        // Update background with boosted speed from any active powerup
         this.background.update(this.gameSpeed * powerupSpeedMultiplier);
         
-        // Update ground with boosted speed when in fly mode
+        // Update ground with boosted speed from any active powerup
         this.ground.update(this.gameSpeed * powerupSpeedMultiplier);
         
-        // Update player with speed multiplier to animate faster during fly mode
+        // Update player with speed multipliers (handled internally in player.update)
         this.player.update(this.gameSpeed * powerupSpeedMultiplier);
         
-        // Update obstacles with boosted speed when in fly mode
+        // Update obstacles with boosted speed from any active powerup
         this.obstacleManager.update(deltaTime, this.gameSpeed * powerupSpeedMultiplier);
         
-        // Check collisions with obstacles (don't check when flying)
-        if (!this.player.isFlying && this.collisionSystem.checkCollision(this.player, this.obstacleManager)) {
-            this.gameOver();
-            return;
+        // Check collisions with obstacles
+        if (!this.player.isFlying) {
+            const collidedObstacle = this.collisionSystem.checkCollision(this.player, this.obstacleManager);
+            
+            if (collidedObstacle) {
+                // If attacking, destroy the obstacle instead of game over
+                if (this.player.isAttacking) {
+                    // Pass the current game speed for more realistic destruction animation
+                    const currentSpeed = this.gameSpeed * powerupSpeedMultiplier;
+                    this.obstacleManager.destroyObstacle(collidedObstacle, currentSpeed);
+                    // Award bonus points for destroying obstacle
+                    this.scoreSystem.addBonus(50);
+                } else {
+                    // Normal collision = game over
+                    this.gameOver();
+                    return;
+                }
+            }
         }
         
         // Check if player is falling into a hole (skip check when flying)
@@ -117,10 +131,22 @@ class PlayingState extends BaseState {
         ctx.fillText(`Gaps Enabled: ${DEBUG.GAPS_ENABLED ? 'YES' : 'NO'} (Press G to toggle)`, 10, 100);
         ctx.fillText(`Flying: ${this.player.isFlying ? 'YES' : 'NO'} (Press T to toggle)`, 10, 120);
         
-        // Add speed multiplier info when in fly mode
-        if (this.player.isFlying) {
-            ctx.fillText(`Speed Boost: ${this.powerupManager.getSpeedMultiplier().toFixed(1)}x`, 10, 140);
-            ctx.fillText(`Score Boost: ${this.powerupManager.getScoreMultiplier().toFixed(1)}x`, 10, 160);
+        // Consolidated redundant code for displaying speed/score multipliers
+        const yOffset = 140;
+        if (this.player.isFlying || this.player.isAttacking) {
+            // Show speed and score boosts (same for both powerups)
+            ctx.fillText(`Speed Boost: ${this.powerupManager.getSpeedMultiplier().toFixed(1)}x`, 10, yOffset);
+            ctx.fillText(`Score Boost: ${this.powerupManager.getScoreMultiplier().toFixed(1)}x`, 10, yOffset + 20);
+            
+            // Show active powerup states
+            let textLine = yOffset + 40;
+            if (this.player.isFlying) {
+                ctx.fillText(`Flying Mode: ACTIVE (Press T to toggle)`, 10, textLine);
+                textLine += 20;
+            }
+            if (this.player.isAttacking) {
+                ctx.fillText(`Attack Mode: ACTIVE (Press A to toggle)`, 10, textLine);
+            }
         }
     }
     
@@ -195,6 +221,18 @@ class PlayingState extends BaseState {
                         this.powerupManager.activate('fly', this.player);
                     }
                     console.log(`Flying mode: ${this.player.isFlying ? 'ON' : 'OFF'}`);
+                }
+            }
+            
+            // Add listener for 'A' key to toggle attack mode
+            if (event.key === 'a' || event.key === 'A') {
+                if (this.player) {
+                    if (this.powerupManager.isActive('attack')) {
+                        this.powerupManager.cancel('attack', this.player);
+                    } else {
+                        this.powerupManager.activate('attack', this.player);
+                    }
+                    console.log(`Attack mode: ${this.player.isAttacking ? 'ON' : 'OFF'}`);
                 }
             }
         });

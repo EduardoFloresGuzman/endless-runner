@@ -38,10 +38,14 @@ class Player extends Entity {
         this.state = 'idle';
         this.isFalling = false; // New state for falling into holes
         this.isFlying = false;  // New state for flying mode
+        this.isAttacking = false; // New state for attack mode
         this.targetFlyY = 0;    // Target Y position when flying
         this.isExitingFlyMode = false; // Flag to track transition from flying to ground
         this.flySpeedMultiplier = 1.0; // Speed multiplier during fly mode
         this.flyScoreMultiplier = 1.0; // Score multiplier during fly mode
+        this.attackSpeedMultiplier = 1.0; // Speed multiplier during attack mode
+        this.attackScoreMultiplier = 1.0; // Score multiplier during attack mode
+        this.attackGlowIntensity = 0;
         
         // Animation properties
         this.frameIndex = 0;
@@ -194,8 +198,13 @@ class Player extends Entity {
     }
     
     update(gameSpeed = 1) {
-        // Update animation speed based on game speed
-        this.updateAnimationSpeed(gameSpeed * (this.isFlying ? this.flySpeedMultiplier : 1));
+        // Calculate combined speed multiplier from both powerups
+        const combinedSpeedMultiplier = gameSpeed * 
+            (this.isFlying ? this.flySpeedMultiplier : 1) * 
+            (this.isAttacking ? this.attackSpeedMultiplier : 1);
+            
+        // Update animation speed based on combined game speed
+        this.updateAnimationSpeed(combinedSpeedMultiplier);
         
         // Special handling for falling into a hole
         if (this.isFalling) {
@@ -268,6 +277,17 @@ class Player extends Entity {
     }
     
     draw(ctx) {
+        // Save context for potential glow effect
+        ctx.save();
+        
+        // Add glow effect if player is attacking
+        if (this.isAttacking && this.attackGlowIntensity > 0) {
+            ctx.shadowColor = this.isFlying ? 
+                'rgba(255, 150, 50, 0.8)' :  // Orange glow for flying + attacking
+                'rgba(255, 50, 50, 0.8)';    // Red glow for just attacking
+            ctx.shadowBlur = 15 * this.attackGlowIntensity;
+        }
+        
         // Get the appropriate asset key for the current frame
         const assetKey = `player_${this.state}_${this.frameIndex}`;
         
@@ -282,9 +302,12 @@ class Player extends Entity {
             );
         } else {
             // Fallback to rectangle if image isn't loaded
-            ctx.fillStyle = '#3498db';
+            ctx.fillStyle = this.isAttacking ? '#ff4444' : '#3498db';
             ctx.fillRect(this.x, this.y, this.width, this.height);
         }
+        
+        // Restore context
+        ctx.restore();
         
         // Draw debug hitbox if debug mode is enabled
         if (DEBUG.ENABLED && DEBUG.SHOW_HITBOXES) {

@@ -119,12 +119,67 @@ class FlyPowerup extends Powerup {
 }
 
 /**
+ * Attack Powerup - Allows player to destroy obstacles
+ */
+class AttackPowerup extends Powerup {
+    constructor(duration = 5000) {
+        super(duration);
+        this.active = false;
+        this.pointsPerObstacle = 50; // Points awarded for destroying an obstacle
+        this.attackEffectDuration = 300; // How long the destruction animation lasts
+        this.speedBoostFactor = 2.0; // Speed boost when in attack mode (slightly less than flying)
+        this.scoreMultiplier = 3.0; // Score multiplier when attacking
+    }
+    
+    _onActivate(player) {
+        // Store original player state to restore later
+        this.originalState = {
+            isAttacking: player.isAttacking || false
+        };
+        
+        // Set attacking state
+        player.isAttacking = true;
+        
+        // Apply speed and score multipliers
+        player.attackSpeedMultiplier = this.speedBoostFactor;
+        player.attackScoreMultiplier = this.scoreMultiplier;
+        
+        // Visual indication player has attack power
+        player.attackGlowIntensity = 1.0;
+        
+        console.log(`Attack powerup activated! Speed: ${this.speedBoostFactor}x, Score: ${this.scoreMultiplier}x`);
+    }
+    
+    _onUpdate(deltaTime, player) {
+        // Pulsate attack glow effect
+        if (player.attackGlowIntensity !== undefined) {
+            player.attackGlowIntensity = 0.7 + Math.sin(Date.now() / 200) * 0.3;
+        }
+        
+        // Add timer warning when powerup is about to expire
+        if (this.timeRemaining < 1000) {
+            player.attackGlowIntensity = Math.random() > 0.5 ? 1.0 : 0.3; // Flicker effect
+        }
+    }
+    
+    _onDeactivate(player) {
+        player.isAttacking = this.originalState.isAttacking;
+        // Reset the multipliers
+        player.attackSpeedMultiplier = 1.0;
+        player.attackScoreMultiplier = 1.0;
+        player.attackGlowIntensity = 0;
+        console.log("Attack powerup deactivated!");
+    }
+}
+
+/**
  * Manages all powerups in the game
  */
 class PowerupManager {
     constructor() {
         this.powerups = {
-            fly: new FlyPowerup()
+            fly: new FlyPowerup(),
+            attack: new AttackPowerup()
         };
     }
     
@@ -179,8 +234,12 @@ class PowerupManager {
     getSpeedMultiplier() {
         let multiplier = 1.0;
         Object.values(this.powerups).forEach(powerup => {
-            if (powerup.isActive && powerup instanceof FlyPowerup) {
-                multiplier *= powerup.speedBoostFactor;
+            if (powerup.isActive) {
+                if (powerup instanceof FlyPowerup) {
+                    multiplier *= powerup.speedBoostFactor;
+                } else if (powerup instanceof AttackPowerup) {
+                    multiplier *= powerup.speedBoostFactor;
+                }
             }
         });
         return multiplier;
@@ -192,8 +251,12 @@ class PowerupManager {
     getScoreMultiplier() {
         let multiplier = 1.0;
         Object.values(this.powerups).forEach(powerup => {
-            if (powerup.isActive && powerup instanceof FlyPowerup) {
-                multiplier *= powerup.scoreMultiplier;
+            if (powerup.isActive) {
+                if (powerup instanceof FlyPowerup) {
+                    multiplier *= powerup.scoreMultiplier;
+                } else if (powerup instanceof AttackPowerup) {
+                    multiplier *= powerup.scoreMultiplier;
+                }
             }
         });
         return multiplier;
